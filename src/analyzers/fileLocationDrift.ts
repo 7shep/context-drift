@@ -64,10 +64,15 @@ function rankFolders(files: RepoFile[]): string[] {
   }
 
   const highestCount = Math.max(...counts.values());
-  return [...counts.entries()]
+  const topFolders = [...counts.entries()]
     .filter(([, count]) => count === highestCount)
-    .sort((a, b) => comparePaths(a[0], b[0]))
-    .map(([directory]) => directory);
+    .sort((a, b) => comparePaths(a[0], b[0]));
+
+  if (topFolders.length !== 1) {
+    return [];
+  }
+
+  return topFolders.map(([directory]) => directory);
 }
 
 function createFinding(
