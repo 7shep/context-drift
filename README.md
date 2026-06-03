@@ -1,41 +1,32 @@
-# Context Drift
+<h1 align="center">
+  <br>
+  Context Drift
+</h1>
 
-Stop AI-generated code from making your repo weird.
+<h4 align="center">A small CLI for spotting when new code starts to drift from your repository's naming conventions.</h4>
 
-Context Drift is an open-source CLI and GitHub Action that detects when new code does not match your existing codebase conventions.
+<p align="center">
+  <img src="https://img.shields.io/badge/node-20%2B-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node 20+">
+  <img src="https://img.shields.io/badge/typescript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/cli-utility-111827?style=flat-square&logo=windowsterminal&logoColor=white" alt="CLI utility">
+</p>
 
-## Usage
+<p align="center">
+  Context Drift scans supported source files, summarizes their naming styles, and highlights the files that changed relative to git or an explicit file list.
+</p>
 
-```bash
-npx context-drift check
-```
+<table>
+<tr>
+<td>
 
-Example output:
-
-```txt
-Context Drift
-
-Files scanned: 142
-Changed files: 3
-Format: markdown
-```
-
-## Local Development
-
-```bash
-npm install
-npm run build
-npm run check
-```
-
-The first milestone scans JavaScript and TypeScript source files:
+**What it checks**
 
 - `**/*.ts`
 - `**/*.tsx`
 - `**/*.js`
 - `**/*.jsx`
 
-It ignores common generated or vendor folders:
+**What it ignores**
 
 - `node_modules`
 - `.git`
@@ -43,3 +34,94 @@ It ignores common generated or vendor folders:
 - `dist`
 - `build`
 - `coverage`
+
+</td>
+</tr>
+</table>
+
+## Quick Start
+
+```bash
+npm install
+npm run build
+npx context-drift check --base main
+```
+
+If you already know which files changed, you can pass them directly:
+
+```bash
+npx context-drift check --changed src/cli.ts,src/scanner.ts
+```
+
+## Output
+
+The default report is intentionally simple:
+
+```txt
+Context Drift
+
+Files scanned: 142
+Changed files: 3
+Format: markdown
+
+Naming conventions:
+- PascalCase: 12%
+- kebab-case: 18%
+- camelCase: 41%
+- snake_case: 9%
+- lower-case: 20%
+- upper-case: 0%
+```
+
+## CLI
+
+The project exposes one command:
+
+```bash
+context-drift check
+```
+
+Options:
+
+- `--base <branch>`: diff against `base...HEAD` and treat those files as changed.
+- `--changed <files>`: comma-separated, repo-relative paths to mark as changed.
+- `--format <format>`: accepts `markdown` or `json` and is reflected in the report header.
+
+Examples:
+
+```bash
+npx context-drift check --base origin/main
+npx context-drift check --format json
+npx context-drift check --changed src/index.ts,src/cli.ts
+```
+
+## Development
+
+```bash
+npm run dev
+npm test
+npm run typecheck
+```
+
+## How It Works
+
+1. Resolve changed files from `--changed` or `git diff --name-only <base>...HEAD`.
+2. Scan the repository for supported source files.
+3. Normalize paths and mark files that are part of the changed set.
+4. Classify file names into naming styles such as PascalCase, camelCase, kebab-case, and snake_case.
+5. Print a compact summary that is easy to read in a terminal or CI log.
+
+## Project Layout
+
+- `src/index.ts` bootstraps the CLI.
+- `src/cli.ts` defines commands and output.
+- `src/scanner.ts` finds supported files and normalizes paths.
+- `src/git.ts` reads git diff output.
+- `src/naming.ts` classifies file naming styles.
+- `tests/` contains the Vitest coverage for the scanner, git helpers, and naming logic.
+
+## Requirements
+
+- Node.js `20` or newer
+- Git for `--base` comparisons
+
