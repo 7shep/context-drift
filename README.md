@@ -108,6 +108,11 @@ The drifted example includes an API helper in an unusual folder, a snake_case co
 
 ## GitHub Action
 
+This repository runs Context Drift automatically on pull requests with
+`.github/workflows/context-drift.yml`. The workflow checks out the full git
+history, runs the local action against the pull request diff, and posts or
+updates a single bot comment when drift findings exist.
+
 Add this workflow to run Context Drift on pull requests:
 
 ```yaml
@@ -115,7 +120,7 @@ name: Context Drift
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   context-drift:
@@ -136,7 +141,7 @@ jobs:
 
       - uses: 7shep/context-drift@v0.1
         with:
-          base-ref: origin/main
+          base-ref: origin/${{ github.base_ref }}
           min-confidence: "0.75"
           format: markdown
           github-token: ${{ secrets.GITHUB_TOKEN }}

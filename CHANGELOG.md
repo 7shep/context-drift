@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - `docs/architecture.md` and `docs/checks.md` for repository context.
 - GitHub issue and pull request templates under `.github/`.
 - A GitHub Actions CI workflow for build, test, and typecheck verification.
+- A Context Drift pull request workflow that posts or updates report comments.
 - Contributor guidance for keeping pull requests focused and low-noise.
 - A pull request template in `CONTRIBUTING.md`.
 - README contribution steps for local validation and PR preparation.

@@ -1,0 +1,40 @@
+name: Context Drift
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  context-drift:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Run Context Drift
+        uses: ./
+        with:
+          base-ref: origin/${{ github.base_ref }}
+          min-confidence: "0.75"
+          format: markdown
+          github-token: ${{ secrets.GITHUB_TOKEN }}

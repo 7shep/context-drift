@@ -38,6 +38,17 @@ The README SHALL include a pull request workflow example with checkout, Node set
 - **WHEN** a user reads the README
 - **THEN** they SHALL find a GitHub Actions workflow example
 
+### Requirement: Run Context Drift in repository pull request CI
+
+The repository SHALL include a GitHub Actions workflow that runs Context Drift on pull requests to `main`, compares against the pull request base ref, and provides a GitHub token so the action can comment when findings exist.
+
+#### Scenario: Pull request opens against main
+
+- **WHEN** a pull request is opened against `main`
+- **THEN** the workflow SHALL run the local Context Drift action with full git history
+- **AND** it SHALL pass the pull request base ref as the comparison base
+- **AND** it SHALL grant the permissions needed to create or update the report comment
+
 ### Requirement: Post or update pull request comments
 
 When a GitHub token is provided on a pull request event and Markdown output is selected, the action SHALL post a single Context Drift report comment if findings exist. If a prior Context Drift comment exists, the action SHALL update that comment instead of posting a duplicate.
