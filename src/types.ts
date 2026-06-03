@@ -80,3 +80,19 @@ export type CheckOptions = {
   changed: string[];
   minConfidence: number;
 };
+
+export type FindingSummary = {
+  findings: number;
+  high: number;
+  medium: number;
+  low: number;
+};
+
+export type CheckReport = {
+  summary: FindingSummary & {
+    filesScanned: number;
+    changedFiles: number;
+  };
+  naming: NamingStyleSummary;
+  findings: DriftFinding[];
+};

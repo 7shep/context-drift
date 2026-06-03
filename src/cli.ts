@@ -4,8 +4,10 @@ import { analyzeFileLocationDrift } from "./analyzers/fileLocationDrift.js";
 import { analyzeNamingDrift } from "./analyzers/namingDrift.js";
 import { buildConventionProfile } from "./conventionProfile.js";
 import { getChangedFilesFromGit } from "./git.js";
+import { renderJsonReport } from "./reporters/jsonReporter.js";
+import { renderMarkdownReport } from "./reporters/markdownReporter.js";
 import { isSupportedSourceFile, normalizePath, scanRepo } from "./scanner.js";
-import type { CheckOptions, DriftFinding, NamingStyleSummary, OutputFormat } from "./types.js";
+import type { CheckOptions, CheckReport, DriftFinding, OutputFormat } from "./types.js";
 
 const DEFAULT_FORMAT: OutputFormat = "markdown";
 const DEFAULT_MIN_CONFIDENCE = 0.75;
@@ -54,14 +56,9 @@ async function runCheck(options: CheckOptions): Promise<void> {
     ...analyzeFileLocationDrift(changedRepoFiles, files, profile),
     ...analyzeDuplicateUtilityDrift(changedRepoFiles, files, profile)
   ].filter((finding) => finding.confidence >= options.minConfidence);
+  const report = buildReport(profile.filesScanned, changedFileCount, profile.naming, findings);
 
-  printSummary({
-    filesScanned: profile.filesScanned,
-    changedFiles: changedFileCount,
-    format: options.format
-  });
-  printNamingConventions(profile.naming);
-  printFindings(findings);
+  console.log(options.format === "json" ? renderJsonReport(report) : renderMarkdownReport(report));
 }
 
 /**
@@ -80,62 +77,24 @@ async function resolveChangedFiles(options: CheckOptions): Promise<string[]> {
   return [];
 }
 
-function printSummary(summary: { filesScanned: number; changedFiles: number; format: OutputFormat }): void {
-  console.log("Context Drift");
-  console.log("");
-  console.log(`Files scanned: ${summary.filesScanned}`);
-  console.log(`Changed files: ${summary.changedFiles}`);
-  console.log(`Format: ${summary.format}`);
-}
-
-function printNamingConventions(naming: NamingStyleSummary): void {
-  const rows: Array<[string, number]> = [
-    ["PascalCase", naming.pascalCasePercent],
-    ["camelCase", naming.camelCasePercent],
-    ["kebab-case", naming.kebabCasePercent],
-    ["snake_case", naming.snakeCasePercent],
-    ["lowercase", naming.lowerCasePercent],
-    ["UPPERCASE", naming.upperCasePercent],
-    ["unknown", naming.unknownPercent]
-  ];
-
-  console.log("");
-  console.log("Naming conventions:");
-
-  const present = rows.filter(([, percent]) => percent > 0);
-  if (present.length === 0) {
-    console.log("- (no source files)");
-    return;
-  }
-
-  for (const [label, percent] of present) {
-    console.log(`- ${label}: ${percent}%`);
-  }
-}
-
-function printFindings(findings: DriftFinding[]): void {
-  if (findings.length === 0) {
-    return;
-  }
-
-  console.log("");
-  console.log("Drift findings:");
-
-  for (const finding of findings) {
-    console.log("");
-    console.log(`- ${finding.title} (${Math.round(finding.confidence * 100)}%, ${finding.severity})`);
-    console.log(`  File: ${finding.file}`);
-    console.log(`  ${finding.message}`);
-    if (finding.suggestion) {
-      console.log(`  Suggestion: ${finding.suggestion}`);
-    }
-    if (finding.relatedFiles && finding.relatedFiles.length > 0) {
-      console.log("  Related files:");
-      for (const relatedFile of finding.relatedFiles) {
-        console.log(`  - ${relatedFile}`);
-      }
-    }
-  }
+function buildReport(
+  filesScanned: number,
+  changedFiles: number,
+  naming: CheckReport["naming"],
+  findings: DriftFinding[]
+): CheckReport {
+  return {
+    summary: {
+      filesScanned,
+      changedFiles,
+      findings: findings.length,
+      high: findings.filter((finding) => finding.severity === "high").length,
+      medium: findings.filter((finding) => finding.severity === "medium").length,
+      low: findings.filter((finding) => finding.severity === "low").length
+    },
+    naming,
+    findings
+  };
 }
 
 function parseFormat(format: string): OutputFormat {

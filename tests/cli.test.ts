@@ -23,8 +23,8 @@ afterEach(async () => {
   await Promise.all(fixtures.splice(0).map((fixture) => fs.rm(fixture, { recursive: true, force: true })));
 });
 
-describe("CLI naming drift output", () => {
-  it("prints naming drift findings for changed files above the confidence threshold", async () => {
+describe("CLI reports", () => {
+  it("prints markdown drift findings for changed files above the confidence threshold", async () => {
     const cwd = process.cwd();
     const fixtureRoot = await makeFixture([
       "src/components/UserCard.tsx",
@@ -55,10 +55,59 @@ describe("CLI naming drift output", () => {
       process.chdir(cwd);
     }
 
-    expect(logs.join("\n")).toContain("Drift findings:");
+    expect(logs.join("\n")).toContain("# Context Drift Report");
+    expect(logs.join("\n")).toContain("## Findings");
     expect(logs.join("\n")).toContain("src/components/user_profile_card.tsx");
     expect(logs.join("\n")).toContain(
       "Most files in src/components use PascalCase, but this file uses snake_case."
     );
+  });
+
+  it("prints JSON reports when requested", async () => {
+    const cwd = process.cwd();
+    const fixtureRoot = await makeFixture([
+      "src/components/UserCard.tsx",
+      "src/components/UserMenu.tsx",
+      "src/components/user_profile_card.tsx"
+    ]);
+    const logs: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((message = "") => {
+      logs.push(String(message));
+    });
+
+    process.chdir(fixtureRoot);
+    try {
+      const program = createCli();
+      await program.parseAsync(
+        [
+          "node",
+          "context-drift",
+          "check",
+          "--format",
+          "json",
+          "--changed",
+          "src/components/user_profile_card.tsx",
+          "--min-confidence",
+          "0.9"
+        ],
+        { from: "node" }
+      );
+    } finally {
+      process.chdir(cwd);
+    }
+
+    const report = JSON.parse(logs.join("\n"));
+    expect(report.summary).toMatchObject({
+      filesScanned: 3,
+      changedFiles: 1,
+      findings: 1,
+      high: 1,
+      medium: 0,
+      low: 0
+    });
+    expect(report.findings[0]).toMatchObject({
+      type: "naming-drift",
+      file: "src/components/user_profile_card.tsx"
+    });
   });
 });
