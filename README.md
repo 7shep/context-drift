@@ -106,6 +106,37 @@ node dist/index.js check --changed "examples/nextjs-drifted/src/utils/apiClient.
 
 The drifted example includes an API helper in an unusual folder, a snake_case component file, and a date helper that resembles existing utilities.
 
+## GitHub Action
+
+Add this workflow to run Context Drift on pull requests:
+
+```yaml
+name: Context Drift
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  context-drift:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: 7shep/context-drift@v0.1
+        with:
+          base-ref: origin/main
+          min-confidence: "0.75"
+          format: markdown
+```
+
 ## Development
 
 ```bash
