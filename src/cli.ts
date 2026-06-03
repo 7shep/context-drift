@@ -1,7 +1,8 @@
 import { Command, InvalidArgumentError } from "commander";
 import { getChangedFilesFromGit } from "./git.js";
+import { summarizeNamingStyles } from "./naming.js";
 import { isSupportedSourceFile, normalizePath, scanRepo } from "./scanner.js";
-import type { CheckOptions, OutputFormat } from "./types.js";
+import type { CheckOptions, NamingStyleSummary, OutputFormat } from "./types.js";
 
 const DEFAULT_FORMAT: OutputFormat = "markdown";
 
@@ -42,6 +43,7 @@ async function runCheck(options: CheckOptions): Promise<void> {
     changedFiles: changedFileCount,
     format: options.format
   });
+  printNamingConventions(summarizeNamingStyles(files));
 }
 
 /**
@@ -66,6 +68,31 @@ function printSummary(summary: { filesScanned: number; changedFiles: number; for
   console.log(`Files scanned: ${summary.filesScanned}`);
   console.log(`Changed files: ${summary.changedFiles}`);
   console.log(`Format: ${summary.format}`);
+}
+
+function printNamingConventions(naming: NamingStyleSummary): void {
+  const rows: Array<[string, number]> = [
+    ["PascalCase", naming.pascalCasePercent],
+    ["camelCase", naming.camelCasePercent],
+    ["kebab-case", naming.kebabCasePercent],
+    ["snake_case", naming.snakeCasePercent],
+    ["lowercase", naming.lowerCasePercent],
+    ["UPPERCASE", naming.upperCasePercent],
+    ["unknown", naming.unknownPercent]
+  ];
+
+  console.log("");
+  console.log("Naming conventions:");
+
+  const present = rows.filter(([, percent]) => percent > 0);
+  if (present.length === 0) {
+    console.log("- (no source files)");
+    return;
+  }
+
+  for (const [label, percent] of present) {
+    console.log(`- ${label}: ${percent}%`);
+  }
 }
 
 function parseFormat(format: string): OutputFormat {
