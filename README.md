@@ -95,6 +95,17 @@ npx context-drift check --format json
 npx context-drift check --changed src/index.ts,src/cli.ts
 ```
 
+## Demo
+
+This repository includes a small clean/drifted Next.js-style example under `examples/`.
+After building, run:
+
+```bash
+node dist/index.js check --changed "examples/nextjs-drifted/src/utils/apiClient.ts,examples/nextjs-drifted/src/components/user_profile_card.tsx,examples/nextjs-drifted/src/utils/dateFormat.ts"
+```
+
+The drifted example includes an API helper in an unusual folder, a snake_case component file, and a date helper that resembles existing utilities.
+
 ## Development
 
 ```bash

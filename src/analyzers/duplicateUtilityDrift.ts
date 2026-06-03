@@ -6,7 +6,7 @@ const MIN_SIMILARITY = 0.75;
 
 export function analyzeDuplicateUtilityDrift(
   changedFiles: RepoFile[],
-  _allFiles: RepoFile[],
+  allFiles: RepoFile[],
   profile: ConventionProfile
 ): DriftFinding[] {
   if (changedFiles.length === 0 || profile.exportedFunctions.length === 0) {
@@ -14,8 +14,14 @@ export function analyzeDuplicateUtilityDrift(
   }
 
   const changedPaths = new Set(changedFiles.map((file) => file.path));
+  const sourceFilePaths = new Set(
+    allFiles
+      .filter((file) => classifyFileCategory(file) !== "test")
+      .map((file) => file.path)
+  );
   const baselineFunctions = profile.exportedFunctions.filter(
-    (exportedFunction) => !changedPaths.has(exportedFunction.filePath)
+    (exportedFunction) =>
+      sourceFilePaths.has(exportedFunction.filePath) && !changedPaths.has(exportedFunction.filePath)
   );
   const findings: DriftFinding[] = [];
 

@@ -70,4 +70,13 @@ describe("analyzeDuplicateUtilityDrift", () => {
 
     expect(findings).toEqual([]);
   });
+
+  it("does not use test file exports as duplicate candidates", () => {
+    const findings = analyze([
+      file("src/utils/dateFormat.ts", "export function formatDate() {}", true),
+      file("tests/conventionProfile.test.ts", "export function formatDate() {}")
+    ]);
+
+    expect(findings).toEqual([]);
+  });
 });

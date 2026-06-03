@@ -30,6 +30,15 @@ Changed files MUST be excluded from the existing utility candidate set.
 - **WHEN** two changed files export similar function names
 - **THEN** those changed functions SHALL NOT be compared as baseline candidates
 
+### Requirement: Exclude test exports from baseline candidates
+
+Test files MUST be excluded from duplicate utility baseline candidates.
+
+#### Scenario: Test helper names do not produce duplicate utility findings
+
+- **WHEN** a changed utility export is similar to a function exported from a test file
+- **THEN** the analyzer SHALL NOT report that test export as a duplicate utility candidate
+
 ### Requirement: Report only sufficiently similar names
 
 The analyzer SHALL report duplicate utility drift only when the selected name similarity is at least `0.75`.
