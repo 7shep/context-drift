@@ -14,14 +14,15 @@ export function analyzeDuplicateUtilityDrift(
   }
 
   const changedPaths = new Set(changedFiles.map((file) => file.path));
-  const sourceFilePaths = new Set(
+  const utilityFilePaths = new Set(
     allFiles
-      .filter((file) => classifyFileCategory(file) !== "test")
+      .filter((file) => classifyFileCategory(file) === "utility")
       .map((file) => file.path)
   );
   const baselineFunctions = profile.exportedFunctions.filter(
     (exportedFunction) =>
-      sourceFilePaths.has(exportedFunction.filePath) && !changedPaths.has(exportedFunction.filePath)
+      utilityFilePaths.has(exportedFunction.filePath) &&
+      !changedPaths.has(exportedFunction.filePath)
   );
   const findings: DriftFinding[] = [];
 
