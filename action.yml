@@ -36,6 +36,7 @@ runs:
       id: check
       shell: bash
       run: |
+        set -o pipefail
         report_file="$RUNNER_TEMP/context-drift-report.${{ inputs.format }}"
         node "$GITHUB_ACTION_PATH/dist/index.js" check \
           --base "${{ inputs.base-ref }}" \
