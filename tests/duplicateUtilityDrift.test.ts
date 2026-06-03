@@ -79,4 +79,13 @@ describe("analyzeDuplicateUtilityDrift", () => {
 
     expect(findings).toEqual([]);
   });
+
+  it("does not use non-utility exports as duplicate candidates", () => {
+    const findings = analyze([
+      file("src/utils/dateFormat.ts", "export function formatDate() {}", true),
+      file("src/components/FormatDateShort.tsx", "export function formatDateShort() {}")
+    ]);
+
+    expect(findings).toEqual([]);
+  });
 });
