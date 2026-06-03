@@ -1,6 +1,6 @@
 import { Command, InvalidArgumentError } from "commander";
+import { buildConventionProfile } from "./conventionProfile.js";
 import { getChangedFilesFromGit } from "./git.js";
-import { summarizeNamingStyles } from "./naming.js";
 import { isSupportedSourceFile, normalizePath, scanRepo } from "./scanner.js";
 import type { CheckOptions, NamingStyleSummary, OutputFormat } from "./types.js";
 
@@ -36,14 +36,15 @@ export function createCli(): Command {
 async function runCheck(options: CheckOptions): Promise<void> {
   const changedFiles = (await resolveChangedFiles(options)).filter(isSupportedSourceFile);
   const files = await scanRepo({ changedFiles });
+  const profile = buildConventionProfile(files);
   const changedFileCount = files.filter((file) => file.isChanged).length;
 
   printSummary({
-    filesScanned: files.length,
+    filesScanned: profile.filesScanned,
     changedFiles: changedFileCount,
     format: options.format
   });
-  printNamingConventions(summarizeNamingStyles(files));
+  printNamingConventions(profile.naming);
 }
 
 /**

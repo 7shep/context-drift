@@ -27,6 +27,36 @@ export type RepoFile = {
   isChanged?: boolean;
 };
 
+export type FileCategory =
+  | "component"
+  | "hook"
+  | "api"
+  | "service"
+  | "utility"
+  | "route"
+  | "test"
+  | "unknown";
+
+export type ExportedFunction = {
+  name: string;
+  filePath: string;
+};
+
+export type ConventionProfile = {
+  filesScanned: number;
+  naming: NamingStyleSummary;
+  folders: {
+    components: string[];
+    hooks: string[];
+    api: string[];
+    services: string[];
+    utilities: string[];
+    routes: string[];
+    tests: string[];
+  };
+  exportedFunctions: ExportedFunction[];
+};
+
 export type ScanOptions = {
   cwd?: string;
   changedFiles?: string[];
