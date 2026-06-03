@@ -15,6 +15,11 @@ The repository SHALL include `action.yml` defining a composite action that insta
 - **WHEN** the action is invoked in a workflow with a checked-out repository
 - **THEN** it SHALL run the CLI from the action path against `github.workspace`
 
+#### Scenario: CLI failures fail the action step
+
+- **WHEN** the CLI exits with a non-zero status while writing the report through `tee`
+- **THEN** the action step SHALL fail with the CLI status
+
 ### Requirement: Support action inputs
 
 The action SHALL expose inputs for base ref, minimum confidence, and output format.
