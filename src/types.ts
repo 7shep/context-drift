@@ -57,6 +57,17 @@ export type ConventionProfile = {
   exportedFunctions: ExportedFunction[];
 };
 
+export type DriftFinding = {
+  type: "naming-drift" | "location-drift" | "duplicate-utility";
+  severity: "low" | "medium" | "high";
+  confidence: number;
+  file: string;
+  title: string;
+  message: string;
+  suggestion?: string;
+  relatedFiles?: string[];
+};
+
 export type ScanOptions = {
   cwd?: string;
   changedFiles?: string[];
@@ -66,4 +77,5 @@ export type CheckOptions = {
   format: OutputFormat;
   base?: string;
   changed: string[];
+  minConfidence: number;
 };

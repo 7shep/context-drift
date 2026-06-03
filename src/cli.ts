@@ -1,10 +1,12 @@
 import { Command, InvalidArgumentError } from "commander";
+import { analyzeNamingDrift } from "./analyzers/namingDrift.js";
 import { buildConventionProfile } from "./conventionProfile.js";
 import { getChangedFilesFromGit } from "./git.js";
 import { isSupportedSourceFile, normalizePath, scanRepo } from "./scanner.js";
-import type { CheckOptions, NamingStyleSummary, OutputFormat } from "./types.js";
+import type { CheckOptions, DriftFinding, NamingStyleSummary, OutputFormat } from "./types.js";
 
 const DEFAULT_FORMAT: OutputFormat = "markdown";
+const DEFAULT_MIN_CONFIDENCE = 0.75;
 
 export function createCli(): Command {
   const program = new Command();
@@ -20,6 +22,12 @@ export function createCli(): Command {
     .option("-f, --format <format>", "output format: markdown or json", parseFormat, DEFAULT_FORMAT)
     .option("--base <branch>", "git base branch/ref to diff changed files against")
     .option("--changed <files>", "comma-separated list of changed files", parseChangedFiles, [])
+    .option(
+      "--min-confidence <number>",
+      "minimum finding confidence from 0 to 1",
+      parseMinConfidence,
+      DEFAULT_MIN_CONFIDENCE
+    )
     .action(async (options: CheckOptions) => {
       try {
         await runCheck(options);
@@ -37,7 +45,11 @@ async function runCheck(options: CheckOptions): Promise<void> {
   const changedFiles = (await resolveChangedFiles(options)).filter(isSupportedSourceFile);
   const files = await scanRepo({ changedFiles });
   const profile = buildConventionProfile(files);
-  const changedFileCount = files.filter((file) => file.isChanged).length;
+  const changedRepoFiles = files.filter((file) => file.isChanged);
+  const changedFileCount = changedRepoFiles.length;
+  const findings = analyzeNamingDrift(changedRepoFiles, files, profile).filter(
+    (finding) => finding.confidence >= options.minConfidence
+  );
 
   printSummary({
     filesScanned: profile.filesScanned,
@@ -45,6 +57,7 @@ async function runCheck(options: CheckOptions): Promise<void> {
     format: options.format
   });
   printNamingConventions(profile.naming);
+  printFindings(findings);
 }
 
 /**
@@ -96,6 +109,31 @@ function printNamingConventions(naming: NamingStyleSummary): void {
   }
 }
 
+function printFindings(findings: DriftFinding[]): void {
+  if (findings.length === 0) {
+    return;
+  }
+
+  console.log("");
+  console.log("Naming drift findings:");
+
+  for (const finding of findings) {
+    console.log("");
+    console.log(`- ${finding.title} (${Math.round(finding.confidence * 100)}%, ${finding.severity})`);
+    console.log(`  File: ${finding.file}`);
+    console.log(`  ${finding.message}`);
+    if (finding.suggestion) {
+      console.log(`  Suggestion: ${finding.suggestion}`);
+    }
+    if (finding.relatedFiles && finding.relatedFiles.length > 0) {
+      console.log("  Related files:");
+      for (const relatedFile of finding.relatedFiles) {
+        console.log(`  - ${relatedFile}`);
+      }
+    }
+  }
+}
+
 function parseFormat(format: string): OutputFormat {
   if (format === "markdown" || format === "json") {
     return format;
@@ -109,4 +147,12 @@ function parseChangedFiles(value: string): string[] {
     .split(",")
     .map((filePath) => normalizePath(filePath.trim()))
     .filter(Boolean);
+}
+
+function parseMinConfidence(value: string): number {
+  const confidence = Number(value);
+  if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) {
+    throw new InvalidArgumentError("min-confidence must be a number from 0 to 1");
+  }
+  return confidence;
 }
