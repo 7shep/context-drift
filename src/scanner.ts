@@ -1,4 +1,5 @@
 import path from "node:path";
+import fs from "node:fs/promises";
 import fg from "fast-glob";
 import type { RepoFile, ScanOptions } from "./types.js";
 
@@ -32,18 +33,20 @@ export async function scanRepo(options: ScanOptions = {}): Promise<RepoFile[]> {
     dot: false
   });
 
-  return paths.sort().map((filePath) => {
+  return Promise.all(paths.sort().map(async (filePath) => {
     const normalizedPath = normalizePath(filePath);
     const parsed = path.posix.parse(normalizedPath);
+    const content = await fs.readFile(path.join(cwd, normalizedPath), "utf8");
 
     return {
       path: normalizedPath,
       name: parsed.base,
       extension: parsed.ext,
       directory: parsed.dir,
+      content,
       isChanged: changedFileSet.has(normalizedPath)
     };
-  });
+  }));
 }
 
 export function normalizePath(filePath: string): string {

@@ -24,6 +24,7 @@ export type RepoFile = {
   name: string;
   extension: string;
   directory: string;
+  content?: string;
   isChanged?: boolean;
 };
 

@@ -1,4 +1,5 @@
 import { detectNamingStyle, summarizeNamingStyles } from "./naming.js";
+import { extractExportedFunctions } from "./exportedFunctions.js";
 import type { ConventionProfile, FileCategory, RepoFile } from "./types.js";
 
 /** Next.js special files that name a route rather than a component/util. */
@@ -86,7 +87,9 @@ export function buildConventionProfile(files: RepoFile[]): ConventionProfile {
       routes: rankFolders(dirCountsByCategory.get("route")),
       tests: rankFolders(dirCountsByCategory.get("test"))
     },
-    exportedFunctions: []
+    exportedFunctions: files.flatMap((file) =>
+      file.content === undefined ? [] : extractExportedFunctions(file.content, file.path)
+    )
   };
 }
 

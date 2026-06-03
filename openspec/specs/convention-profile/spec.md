@@ -79,11 +79,14 @@ The profile's `naming` field SHALL be produced by the existing naming-style summ
 - **WHEN** `buildConventionProfile(files)` is called
 - **THEN** `profile.naming` SHALL equal `summarizeNamingStyles(files)` for the same files
 
-### Requirement: Reserve exported functions for later extraction
+### Requirement: Extract exported functions when content is available
 
-The profile SHALL expose an `exportedFunctions` array so downstream analyzers can depend on a stable shape. In this change the array SHALL always be empty; populating it requires AST-based extraction delivered in a later change.
+The profile SHALL expose an `exportedFunctions` array so downstream analyzers can depend on a stable shape. When scanned files include source content, the profile SHALL include exported function declarations, named default function declarations, and exported const arrow functions. When files do not include content, the profile SHALL leave `exportedFunctions` empty.
 
-#### Scenario: Exported functions are empty for now
-- **WHEN** `buildConventionProfile(files)` is called with any input
+#### Scenario: Exported functions are empty without content
+- **WHEN** `buildConventionProfile(files)` is called with files that do not include content
 - **THEN** `exportedFunctions` SHALL be an empty array
 
+#### Scenario: Exported functions are populated from content
+- **WHEN** `buildConventionProfile(files)` is called with files that include exported functions in their content
+- **THEN** `exportedFunctions` SHALL include each extracted function name and file path

@@ -17,6 +17,13 @@ function file(filePath: string, isChanged = false): RepoFile {
   };
 }
 
+function fileWithContent(filePath: string, content: string): RepoFile {
+  return {
+    ...file(filePath),
+    content
+  };
+}
+
 describe("classifyFileCategory", () => {
   it("classifies test files", () => {
     expect(classifyFileCategory(file("src/Button.test.tsx"))).toBe("test");
@@ -136,9 +143,26 @@ describe("buildConventionProfile", () => {
     expect(profile.folders.utilities).toContain("src/lib");
   });
 
-  it("always returns an empty exportedFunctions list", () => {
+  it("keeps exportedFunctions empty when files do not include content", () => {
     expect(buildConventionProfile([file("src/components/Card.tsx")]).exportedFunctions).toEqual(
       []
     );
+  });
+
+  it("extracts exported functions from file content", () => {
+    expect(
+      buildConventionProfile([
+        fileWithContent(
+          "src/lib/date.ts",
+          `
+            export function formatDate() {}
+            export const parseDate = () => {};
+          `
+        )
+      ]).exportedFunctions
+    ).toEqual([
+      { name: "formatDate", filePath: "src/lib/date.ts" },
+      { name: "parseDate", filePath: "src/lib/date.ts" }
+    ]);
   });
 });
