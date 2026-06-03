@@ -55,6 +55,16 @@ describe("analyzeFileLocationDrift", () => {
     expect(findings).toEqual([]);
   });
 
+  it("does not report when baseline category files are split across top folders", () => {
+    const findings = analyze([
+      file("src/utils/request.ts", true),
+      file("src/lib/api/client.ts"),
+      file("src/services/fetcher.ts")
+    ]);
+
+    expect(findings).toEqual([]);
+  });
+
   it("excludes changed files from location evidence", () => {
     const findings = analyze([
       file("src/utils/apiClient.ts", true),
