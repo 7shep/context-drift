@@ -1,0 +1,32 @@
+{
+  "name": "context-drift",
+  "version": "0.1.0",
+  "description": "Detect when new code does not match existing repository conventions.",
+  "type": "module",
+  "bin": {
+    "context-drift": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "check": "node dist/index.js check",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "commander": "^14.0.2",
+    "fast-glob": "^3.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
