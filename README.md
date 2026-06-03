@@ -120,6 +120,10 @@ on:
 jobs:
   context-drift:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
 
     steps:
       - uses: actions/checkout@v4
@@ -135,7 +139,10 @@ jobs:
           base-ref: origin/main
           min-confidence: "0.75"
           format: markdown
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+When `github-token` is provided on a pull request event, the action posts one Context Drift comment and updates that same comment on later runs.
 
 ## Development
 

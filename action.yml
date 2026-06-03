@@ -14,6 +14,10 @@ inputs:
     description: Output format, markdown or json.
     required: false
     default: markdown
+  github-token:
+    description: GitHub token used to post or update a pull request comment. Leave empty to only print logs.
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -29,10 +33,51 @@ runs:
       working-directory: ${{ github.action_path }}
 
     - name: Run Context Drift
+      id: check
       shell: bash
       run: |
+        report_file="$RUNNER_TEMP/context-drift-report.${{ inputs.format }}"
         node "$GITHUB_ACTION_PATH/dist/index.js" check \
           --base "${{ inputs.base-ref }}" \
           --format "${{ inputs.format }}" \
-          --min-confidence "${{ inputs.min-confidence }}"
+          --min-confidence "${{ inputs.min-confidence }}" | tee "$report_file"
+        echo "report_file=$report_file" >> "$GITHUB_OUTPUT"
       working-directory: ${{ github.workspace }}
+
+    - name: Comment on pull request
+      if: ${{ inputs.github-token != '' && github.event_name == 'pull_request' && inputs.format == 'markdown' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        report_file="${{ steps.check.outputs.report_file }}"
+        if grep -q '^Findings: 0$' "$report_file"; then
+          echo "No Context Drift findings to comment on."
+          exit 0
+        fi
+
+        body_file="$RUNNER_TEMP/context-drift-comment.md"
+        {
+          echo "<!-- context-drift-report -->"
+          cat "$report_file"
+        } > "$body_file"
+
+        existing_comment_id="$(
+          gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+            --jq '.[] | select(.body | startswith("<!-- context-drift-report -->")) | .id' \
+            | head -n 1
+        )"
+        body="$(cat "$body_file")"
+
+        if [ -n "$existing_comment_id" ]; then
+          gh api \
+            --method PATCH \
+            "repos/$GITHUB_REPOSITORY/issues/comments/$existing_comment_id" \
+            --field body="$body"
+        else
+          gh api \
+            --method POST \
+            "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+            --field body="$body"
+        fi
