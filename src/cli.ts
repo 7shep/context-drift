@@ -1,4 +1,5 @@
 import { Command, InvalidArgumentError } from "commander";
+import { analyzeDuplicateUtilityDrift } from "./analyzers/duplicateUtilityDrift.js";
 import { analyzeFileLocationDrift } from "./analyzers/fileLocationDrift.js";
 import { analyzeNamingDrift } from "./analyzers/namingDrift.js";
 import { buildConventionProfile } from "./conventionProfile.js";
@@ -50,7 +51,8 @@ async function runCheck(options: CheckOptions): Promise<void> {
   const changedFileCount = changedRepoFiles.length;
   const findings = [
     ...analyzeNamingDrift(changedRepoFiles, files, profile),
-    ...analyzeFileLocationDrift(changedRepoFiles, files, profile)
+    ...analyzeFileLocationDrift(changedRepoFiles, files, profile),
+    ...analyzeDuplicateUtilityDrift(changedRepoFiles, files, profile)
   ].filter((finding) => finding.confidence >= options.minConfidence);
 
   printSummary({
