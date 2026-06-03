@@ -103,6 +103,20 @@ npm test
 npm run typecheck
 ```
 
+## Contributing
+
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a pull request.
+
+Typical contribution flow:
+
+1. Create a branch for one issue.
+2. Make the smallest change that solves that issue.
+3. Run the relevant checks:
+   - `npm run build`
+   - `npm test`
+   - `npm run typecheck`
+4. Open a focused PR with a clear summary and validation notes.
+
 ## How It Works
 
 1. Resolve changed files from `--changed` or `git diff --name-only <base>...HEAD`.
