@@ -10,6 +10,7 @@ Keep changes focused, reviewable, and easy to verify.
 - Avoid noisy PRs that mix unrelated fixes, refactors, or formatting changes.
 - Keep the scope small enough that a reviewer can understand the change quickly.
 - Include validation steps in every PR.
+- Use the repository PR template at [`.github/PULL_REQUEST_TEMPLATE.md`](./.github/PULL_REQUEST_TEMPLATE.md).
 
 ## Before You Open a PR
 
