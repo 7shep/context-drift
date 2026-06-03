@@ -1,4 +1,5 @@
 import { Command, InvalidArgumentError } from "commander";
+import { analyzeFileLocationDrift } from "./analyzers/fileLocationDrift.js";
 import { analyzeNamingDrift } from "./analyzers/namingDrift.js";
 import { buildConventionProfile } from "./conventionProfile.js";
 import { getChangedFilesFromGit } from "./git.js";
@@ -47,9 +48,10 @@ async function runCheck(options: CheckOptions): Promise<void> {
   const profile = buildConventionProfile(files);
   const changedRepoFiles = files.filter((file) => file.isChanged);
   const changedFileCount = changedRepoFiles.length;
-  const findings = analyzeNamingDrift(changedRepoFiles, files, profile).filter(
-    (finding) => finding.confidence >= options.minConfidence
-  );
+  const findings = [
+    ...analyzeNamingDrift(changedRepoFiles, files, profile),
+    ...analyzeFileLocationDrift(changedRepoFiles, files, profile)
+  ].filter((finding) => finding.confidence >= options.minConfidence);
 
   printSummary({
     filesScanned: profile.filesScanned,
@@ -115,7 +117,7 @@ function printFindings(findings: DriftFinding[]): void {
   }
 
   console.log("");
-  console.log("Naming drift findings:");
+  console.log("Drift findings:");
 
   for (const finding of findings) {
     console.log("");

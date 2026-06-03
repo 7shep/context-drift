@@ -55,7 +55,7 @@ describe("CLI naming drift output", () => {
       process.chdir(cwd);
     }
 
-    expect(logs.join("\n")).toContain("Naming drift findings:");
+    expect(logs.join("\n")).toContain("Drift findings:");
     expect(logs.join("\n")).toContain("src/components/user_profile_card.tsx");
     expect(logs.join("\n")).toContain(
       "Most files in src/components use PascalCase, but this file uses snake_case."
