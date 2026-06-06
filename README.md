@@ -86,6 +86,7 @@ Options:
 - `--base <branch>`: diff against `base...HEAD` and treat those files as changed.
 - `--changed <files>`: comma-separated, repo-relative paths to mark as changed.
 - `--format <format>`: accepts `markdown` or `json` and is reflected in the report header.
+- `--min-confidence <number>`: hides findings below the configured confidence threshold. Accepts a value from `0` to `1`; defaults to `0.75`.
 
 Examples:
 
